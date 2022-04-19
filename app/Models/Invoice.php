@@ -17,6 +17,7 @@ use Nwidart\Modules\Facades\Module;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Vinkla\Hashids\Facades\Hashids;
+use Illuminate\Support\Facades\DB;
 
 class Invoice extends Model implements HasMedia
 {
@@ -721,4 +722,28 @@ class Invoice extends Model implements HasMedia
 
         return true;
     }
+
+    public function scopeApplyInvoiceFilters($query, array $filters)
+    {
+        $filters = collect($filters);
+
+        if ($filters->get('from_date') && $filters->get('to_date')) {
+            $start = Carbon::createFromFormat('Y-m-d', $filters->get('from_date'));
+            $end = Carbon::createFromFormat('Y-m-d', $filters->get('to_date'));
+            $query->invoicesBetween($start, $end);
+        }
+    }
+
+    public function scopeItemAttributes($query)
+    {
+
+        $query->select(
+            DB::raw('invoice_items.quantity as quantity, invoice_items.base_total as base_total, invoice_items.name as name, invoices.invoice_number as invoice_id, invoice_items.unit_name as unit, invoices.invoice_date as date'))
+            ->join("invoice_items", "invoices.id", "=", "invoice_items.invoice_id")
+            ->orderBy('name')
+            ->orderBy('invoice_id')
+            ->get();
+    
+    }
+
 }

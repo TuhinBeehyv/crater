@@ -156,12 +156,14 @@ const dateRange = reactive([
 ])
 
 const selectedRange = ref(dateRange[2])
-const reportTypes = ref(['By Customer', 'By Item'])
-const selectedType = ref('By Customer')
+const reportTypes = ref(['By Customer', 'By Item', 'By Item2'])
+const selectedType = ref('By Item')
 let range = ref(new Date())
 let url = ref(null)
+
 let customerSiteURL = ref(null)
 let itemsSiteURL = ref(null)
+let itemisedSiteURL = ref(null)
 
 let formData = reactive({
   from_date: moment().startOf('month').format('YYYY-MM-DD').toString(),
@@ -192,6 +194,13 @@ const itemDaterangeUrl = computed(() => {
   )}&to_date=${moment(formData.to_date).format('YYYY-MM-DD')}`
 })
 
+const itemisedDaterangeUrl = computed(() => {
+  return `${itemisedSiteURL.value}?from_date=${moment(formData.from_date).format(
+    'YYYY-MM-DD'
+  )}&to_date=${moment(formData.to_date).format('YYYY-MM-DD')}`
+})
+
+
 watch(range, (newRange) => {
   formData.from_date = moment(newRange).startOf('year').toString()
   formData.to_date = moment(newRange).endOf('year').toString()
@@ -200,6 +209,8 @@ watch(range, (newRange) => {
 onMounted(() => {
   customerSiteURL.value = `/reports/sales/customers/${getSelectedCompany.value.unique_hash}`
   itemsSiteURL.value = `/reports/sales/items/${getSelectedCompany.value.unique_hash}`
+  itemisedSiteURL.value = `/reports/sales/itemised/${getSelectedCompany.value.unique_hash}`
+
   getInitialReport()
 })
 
@@ -261,8 +272,15 @@ async function getInitialReport() {
     url.value = customerDateRangeUrl.value
     return true
   }
-  url.value = itemDaterangeUrl.value
-  return true
+  else if(selectedType.value === 'By Item'){ 
+    url.value = itemDaterangeUrl.value
+    return true
+  }
+
+  else{
+    url.value = itemisedDaterangeUrl.value
+    return true
+  }
 }
 
 async function viewReportsPDF() {
@@ -276,8 +294,15 @@ function getReports() {
     url.value = customerDateRangeUrl.value
     return true
   }
-  url.value = itemDaterangeUrl.value
-  return true
+  
+  else if(selectedType.value === 'By Item'){ 
+    url.value = itemDaterangeUrl.value
+    return true
+  }
+
+  else{
+    url.value = itemisedDaterangeUrl.value
+    return true
 }
 
 function downloadReport() {
@@ -292,8 +317,18 @@ function downloadReport() {
       url.value = customerDateRangeUrl.value
       return true
     }
-    url.value = itemDaterangeUrl.value
-    return true
+
+    else if(selectedType.value === 'By Item'){ 
+      url.value = itemDaterangeUrl.value
+      return true
+    }
+
+    else{
+      url.value = itemisedDaterangeUrl.value
+      return true
+    }
+
   }, 200)
+}
 }
 </script>

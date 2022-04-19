@@ -7,6 +7,7 @@ use Crater\Http\Controllers\Controller;
 use Crater\Models\Company;
 use Crater\Models\CompanySetting;
 use Crater\Models\InvoiceItem;
+use Crater\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use PDF;
@@ -20,6 +21,7 @@ class ItemSalesReportController extends Controller
     * @param  string  $hash
     * @return \Illuminate\Http\JsonResponse
     */
+
     public function __invoke(Request $request, $hash)
     {
         $company = Company::where('unique_hash', $hash)->first();
@@ -33,11 +35,33 @@ class ItemSalesReportController extends Controller
         $items = InvoiceItem::whereCompany($company->id)
             ->applyInvoiceFilters($request->only(['from_date', 'to_date']))
             ->itemAttributes()
+            ->orderBy('name')
+            ->orderBy('invoice_id')
             ->get();
+
+
+        # TODO: change variable names
+        $all_names = InvoiceItem::whereCompany($company->id)
+            ->applyInvoiceFilters($request->only(['from_date', 'to_date']))
+            ->GetTotalInvoices()
+            ->orderBy('name')
+            ->get();
+
+        $k_arr = [];
+
+        foreach($all_names as $name){
+           $k_obj = $items
+            ->where('name', '=', $name->name )
+            ->sortBy('invoice_id');
+
+            $k = json_decode($k_obj,true);
+            array_push($k_arr,$k);
+
+        }
 
         $totalAmount = 0;
         foreach ($items as $item) {
-            $totalAmount += $item->total_amount;
+             $totalAmount += $item->base_total;
         }
 
         $dateFormat = CompanySetting::getSetting('carbon_date_format', $company->id);
@@ -66,6 +90,8 @@ class ItemSalesReportController extends Controller
             'company' => $company,
             'from_date' => $from_date,
             'to_date' => $to_date,
+            'k_arr' => $k_arr,
+            'allnames' => $all_names,
         ]);
         $pdf = PDF::loadView('app.pdf.reports.sales-items');
 
