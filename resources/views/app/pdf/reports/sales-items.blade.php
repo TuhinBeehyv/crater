@@ -6,7 +6,7 @@
         body {
             font-family: "DejaVu Sans";
         }
-        
+
         table {
             border-collapse: collapse;
         }
@@ -132,12 +132,14 @@
             line-height: 21px;
             color: #5851D8;
         }
+
         .text-center {
             text-align: center;
         }
     </style>
 </head>
 <body>
+    
     <div class="sub-container">
         <table class="report-header">
             <tr>
@@ -154,38 +156,50 @@
                 </td>
             </tr>
         </table>
-        
-        <p class="sales-items-title">@lang('pdf_items_label')</p>
-        @foreach ($items as $item)
+    
+
+        <p class="sales-items-title"></p>
             <div class="items-table-container">
-                <table class="items-table">
-                    <tr>
-                        <td>
-                            <p class="item-title">
-                                {{ $item->name }}
-                            </p>
-                        </td>
-                        <td>
-                            <p class="item-sales-amount">
-                                {!! format_money_pdf($item->total_amount) !!}
-                            </p>
-                        </td>
-                    </tr>
-                </table>
+
+                <table class="items-table" table-layout = "fixed" cellspacing = "1" cellpadding = "2" width="25%" >
+
+                    @foreach ($names as $name)
+                    
+                    <p class="sales-items-name"> {{$name->name}} ({{$name->total_invoices}})  </p>
+                    <div class="items-table-container">
+                        <table class="items-table">
+                                        @foreach($name_invoices as $key=>$value)
+                                            @foreach($value as $v)
+                                                @if ($v["name"] == $name->name)
+                                                <tr>
+                                                    <td>
+                                                        <p class="item-title">
+                                                            {{$v["invoice_id"]}} ({{$v["date"]}}) ({{$v["quantity"]}})  
+                                                        </p>
+                                                    <td>
+                                                    <td>
+                                                        <p class="item-sales-amount">
+                                                            {!! format_money_pdf($v['base_total']) !!}
+                                                        </p>
+                                                    </td>
+                                                </tr>
+                                                @endif
+                                            @endforeach
+                                        @endforeach
+                        </table>
+                    </div>
+                    
+                    <table class="sales-total-indicator-table">
+                        <tr>
+                            <td class="sales-total-cell">
+                                <p class="sales-total-amount">
+                                    {!! format_money_pdf($name->total_amount) !!}
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                @endforeach
             </div>
-        @endforeach
-
-            <table class="sales-total-indicator-table">
-                <tr>
-                    <td class="sales-total-cell">
-                        <p class="sales-total-amount">
-                            {!! format_money_pdf($totalAmount) !!}
-                        </p>
-                    </td>
-                </tr>
-            </table>
-    </div>
-
 
     <table class="report-footer">
         <tr>
